@@ -29,8 +29,6 @@ import edu.wpi.first.math.geometry.Rotation2d;
         private final SwerveRequest.FieldCentric driveRequest = new SwerveRequest.FieldCentric()
                 .withDeadband(MaxSpeed * 0.1).withRotationalDeadband(MaxAngularRate * 0.1) // Add a 10% deadband
                 .withDriveRequestType(DriveRequestType.OpenLoopVoltage); // Use open-loop control for drive motors
-        private final SwerveRequest.SwerveDriveBrake brake = new SwerveRequest.SwerveDriveBrake();
-        private final SwerveRequest.PointWheelsAt point = new SwerveRequest.PointWheelsAt();
 
         private final CommandXboxController joystick = new CommandXboxController(0);
 
@@ -58,20 +56,15 @@ import edu.wpi.first.math.geometry.Rotation2d;
                 drive.getDrivetrain().applyRequest(() -> idle).ignoringDisable(true)
             );
 
-            joystick.a().whileTrue(drive.getDrivetrain().applyRequest(() -> brake));
-            joystick.b().whileTrue(drive.getDrivetrain().applyRequest(() ->
-                point.withModuleDirection(new Rotation2d(-joystick.getLeftY(), -joystick.getLeftX()))
-            ));
-
             // Run SysId routines when holding back/start and X/Y.
             // Note that each routine should be run exactly once in a single log.
-            joystick.back().and(joystick.y()).whileTrue(drive.getDrivetrain().sysIdDynamic(Direction.kForward));
-            joystick.back().and(joystick.x()).whileTrue(drive.getDrivetrain().sysIdDynamic(Direction.kReverse));
-            joystick.start().and(joystick.y()).whileTrue(drive.getDrivetrain().sysIdQuasistatic(Direction.kForward));
-            joystick.start().and(joystick.x()).whileTrue(drive.getDrivetrain().sysIdQuasistatic(Direction.kReverse));
+            // joystick.back().and(joystick.y()).whileTrue(drive.getDrivetrain().sysIdDynamic(Direction.kForward));
+            // joystick.back().and(joystick.x()).whileTrue(drive.getDrivetrain().sysIdDynamic(Direction.kReverse));
+            // joystick.start().and(joystick.y()).whileTrue(drive.getDrivetrain().sysIdQuasistatic(Direction.kForward));
+            // joystick.start().and(joystick.x()).whileTrue(drive.getDrivetrain().sysIdQuasistatic(Direction.kReverse));
 
             // reset the field-centric heading on left bumper press
-            joystick.leftBumper().onTrue(drive.getDrivetrain().runOnce(() -> drive.getDrivetrain().seedFieldCentric()));
+            joystick.start().onTrue(drive.getDrivetrain().runOnce(() -> drive.getDrivetrain().seedFieldCentric()));
         }
 
         public Command getAutonomousCommand() {

@@ -3,16 +3,22 @@ package frc.robot.subsystems.drive;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 
 import com.ctre.phoenix6.swerve.SwerveDrivetrain.SwerveDriveState;
+import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 @Logged
 /**
- * The class represents the drivetrain of the robot. It manages telemetry output, pose tracking, and updating drivetrains tates.
+ * The class represents the drivetrain of the robot. It manages telemetry output, pose tracking, and updating drivetrain  states.
+ * I certify the work I am submitting is my original work. I have not shared nor exchanged information from anyone, nor will I do so in the future.
+ * Additionally, I will immediately notify a teacher if I become aware that another student has comprimised the policy.
  */
 public class Drive extends SubsystemBase {
     /**The most recently read drivetrain state */
@@ -74,6 +80,10 @@ public class Drive extends SubsystemBase {
         return lastReadState.Pose;
     }
 
+    public Rotation2d getRotation() {
+        return getState().RawHeading;
+    }
+
     /**
      * Returns the current drivetrain state.
      * @return the most recent {@link SwerveDriveState}.
@@ -82,11 +92,32 @@ public class Drive extends SubsystemBase {
         return drivetrain.getState();
     }
 
+    public ChassisSpeeds getRobotRelativeChassisSpeeds() {
+        return getState().Speeds;
+    }
+
+    public ChassisSpeeds getFieldRelativeChassisSpeeds() {
+        return ChassisSpeeds.fromRobotRelativeSpeeds(getRobotRelativeChassisSpeeds(), getRotation());
+    }
+
     /**
      * Resets the drivetrain's odometry to a specific pose.
      * @param pose The new pose to reset odometry to.
      */
     public void resetPose(Pose2d pose) {
         getDrivetrain().resetPose(pose);
+    }
+
+    /**
+     * Stops all the swerve module motors
+     */
+    public void stopDrive() {
+        for (int i = 0; i < 4; i++ ) {
+            drivetrain.getModules()[i].getDriveMotor().stopMotor();
+         }
+    }
+
+    public Command brake() {
+        return this.getDrivetrain().applyRequest(() -> new SwerveRequest.SwerveDriveBrake());
     }
 }
