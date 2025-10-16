@@ -10,13 +10,15 @@
     import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import edu.wpi.first.epilogue.Logged;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
     import edu.wpi.first.wpilibj2.command.Command;
     import edu.wpi.first.wpilibj2.command.Commands;
     import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
     import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
     import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
-    import frc.robot.subsystems.drive.Drive;
+import frc.robot.commands.DriveToPose;
+import frc.robot.subsystems.drive.Drive;
     import frc.robot.subsystems.drive.TunerConstants;
 
     @Logged
@@ -49,6 +51,9 @@ import edu.wpi.first.math.geometry.Rotation2d;
                 )
             );
 
+            joystick.a().onTrue(driveToPoseTest);
+            
+
             // Idle while the robot is disabled. This ensures the configured
             // neutral mode is applied to the drive motors while disabled.
             final var idle = new SwerveRequest.Idle();
@@ -70,4 +75,11 @@ import edu.wpi.first.math.geometry.Rotation2d;
         public Command getAutonomousCommand() {
             return Commands.print("No autonomous command configured");
         }
+
+        public final Command driveToPoseTest = 
+            new DriveToPose(drive, new Pose2d(2.0, 1.0, new Rotation2d(Math.PI/2)), 1.0);
+
+        
+
+        
     }
