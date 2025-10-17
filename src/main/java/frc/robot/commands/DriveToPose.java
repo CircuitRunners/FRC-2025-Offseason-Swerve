@@ -139,7 +139,7 @@ public class DriveToPose extends Command{
         double thetaVelocityFinal = thetaVelocity;
         
         
-        drive.getDrivetrain().applyRequest(() ->
+        drive.getDrivetrain().setControl(
                 new SwerveRequest.ApplyRobotSpeeds()
                         .withSpeeds(
                                 ChassisSpeeds.fromFieldRelativeSpeeds(
