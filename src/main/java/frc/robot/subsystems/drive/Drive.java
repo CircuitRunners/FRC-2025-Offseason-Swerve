@@ -94,14 +94,26 @@ public class Drive extends SubsystemBase {
         return drivetrain.getState();
     }
 
+    /**
+     * Returns the current robot relative chassis speeds
+     * @return the most recent {@link ChassisSpeeds}
+     */
     public ChassisSpeeds getRobotRelativeChassisSpeeds() {
         return getState().Speeds;
     }
 
+    /**
+     * Returns the current field relative chassis speeds
+     * @return the most reccent {@link ChassisSpeeds}
+     */
     public ChassisSpeeds getFieldRelativeChassisSpeeds() {
         return ChassisSpeeds.fromRobotRelativeSpeeds(getRobotRelativeChassisSpeeds(), getRotation());
     }
 
+    /**
+     * Drives the robot robot centric
+     * @param speeds
+     */
     public void driveRobotCentric(ChassisSpeeds speeds){
       getDrivetrain().setControl(
            new SwerveRequest.RobotCentric()
@@ -130,6 +142,10 @@ public class Drive extends SubsystemBase {
          }
     }
 
+    /**
+     * Applies a swerve request that sets the swerve drive module states to point inward on the robot in an "X" fashion, creating a natural brake which will oppose any motion.
+     * @return the command that brakes the swerve
+     */
     public Command brake() {
         return this.getDrivetrain().applyRequest(() -> new SwerveRequest.SwerveDriveBrake());
     }
