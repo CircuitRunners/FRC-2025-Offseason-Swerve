@@ -5,14 +5,12 @@ import com.ctre.phoenix6.swerve.SwerveRequest;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
-import edu.wpi.first.wpilibj.RobotState;
 import edu.wpi.first.wpilibj2.command.Command;
+import frc.lib.util.MathHelpers;
 import frc.robot.auto.AutoConstants;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.DriveConstants;
@@ -131,21 +129,23 @@ public class DriveToPose extends Command{
         if (thetaErrorAbs < thetaController.getPositionTolerance()) thetaVelocity = 0.0;
 
         
-        var driveVelocity = (new Pose2d(DriveConstants.kTranslation2dZero,
-                currentPose.getTranslation().minus(targetLocation.getTranslation()).getAngle()))
-                .transformBy(new Transform2d(new Translation2d(driveVelocityScalar, 0.0), DriveConstants.kRotation2dZero)
-                ).getTranslation();
+        var driveVelocity = MathHelpers.pose2dFromRotation(
+                                currentPose
+                                        .getTranslation()
+                                        .minus(targetLocation.getTranslation())
+                                        .getAngle())
+                        .transformBy(
+                                MathHelpers.transform2dFromTranslation(
+                                        new Translation2d(driveVelocityScalar, 0.0)))
+                        .getTranslation();
            
-        double thetaVelocityFinal = thetaVelocity;
-        
-        
         drive.getDrivetrain().setControl(
                 new SwerveRequest.ApplyRobotSpeeds()
                         .withSpeeds(
                                 ChassisSpeeds.fromFieldRelativeSpeeds(
                                         driveVelocity.getX(),
                                         driveVelocity.getY(),
-                                        thetaVelocityFinal,
+                                        thetaVelocity,
                                         currentPose.getRotation())));
 
     }

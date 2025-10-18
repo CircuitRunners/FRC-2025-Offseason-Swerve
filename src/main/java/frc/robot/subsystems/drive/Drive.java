@@ -2,6 +2,8 @@ package frc.robot.subsystems.drive;
 
 import static edu.wpi.first.units.Units.MetersPerSecond;
 
+import java.util.Date;
+
 import com.ctre.phoenix6.swerve.SwerveDrivetrain.SwerveDriveState;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
@@ -99,6 +101,17 @@ public class Drive extends SubsystemBase {
     public ChassisSpeeds getFieldRelativeChassisSpeeds() {
         return ChassisSpeeds.fromRobotRelativeSpeeds(getRobotRelativeChassisSpeeds(), getRotation());
     }
+
+    public void driveRobotCentric(ChassisSpeeds speeds){
+      getDrivetrain().setControl(
+           new SwerveRequest.RobotCentric()
+        .withVelocityX(speeds.vxMetersPerSecond)
+        .withVelocityY(speeds.vyMetersPerSecond)
+        // .withVelocityX(speeds.vxMetersPerSecond)
+        // .withVelocityY(speeds.vyMetersPerSecond)
+      .withRotationalRate(speeds.omegaRadiansPerSecond)
+    );
+  }
 
     /**
      * Resets the drivetrain's odometry to a specific pose.
