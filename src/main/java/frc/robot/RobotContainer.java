@@ -17,6 +17,7 @@
     import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
     import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
     import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
+    import frc.robot.commands.DriveMaintainingHeading;
     import frc.robot.commands.DriveToPose;
     import frc.robot.subsystems.drive.Drive;
     import frc.robot.subsystems.drive.TunerConstants;
@@ -53,6 +54,9 @@
 
             joystick.a().onTrue(driveToPoseTest);
             
+            // drive.setDefaultCommand(
+            //     driveCommand
+            // );  
 
             // Idle while the robot is disabled. This ensures the configured
             // neutral mode is applied to the drive motors while disabled.
@@ -76,8 +80,11 @@
             return Commands.print("No autonomous command configured");
         }
 
-        public final Command driveToPoseTest = 
+        private final Command driveToPoseTest = 
             new DriveToPose(drive, new Pose2d(2.0, 1.0, new Rotation2d(Math.PI/2)), 1.0);
+
+        private final DriveMaintainingHeading driveCommand = 
+        (new DriveMaintainingHeading(drive, this, () -> joystick.getLeftY(), () -> joystick.getLeftX(), () -> joystick.getRightX()));
 
         
 
