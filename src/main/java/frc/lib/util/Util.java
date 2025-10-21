@@ -1,5 +1,19 @@
 package frc.lib.util;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import edu.wpi.first.math.Pair;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Transform2d;
+import edu.wpi.first.math.trajectory.Trajectory;
+import edu.wpi.first.math.trajectory.Trajectory.State;
+import edu.wpi.first.units.BaseUnits;
+import edu.wpi.first.units.Units;
+import edu.wpi.first.units.measure.Time;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+
 public class Util {
     /**
      * Limits the given input to the given magnitude.
@@ -26,4 +40,82 @@ public class Util {
     public static boolean inRange(double v, double min, double max) {
         return v > min && v < max;
     }
+
+    public static class Pose2dTimeInterpolable {
+		private List<Pair<Pose2d, Time>> poseList = new ArrayList<>();
+
+		public Time getTimeFromPose(Pose2d pose) {
+			Pair<Pose2d, Time> prevState = poseList.get(0);
+			Pair<Pose2d, Time> nextState = poseList.get(0);
+			for (int i = 0; i < poseList.size() - 1; i++) {
+				if (i >= poseList.size() - 2) {
+					return poseList.get(poseList.size() - 1).getSecond();
+				}
+				prevState = poseList.get(i);
+				nextState = poseList.get(i + 2);
+				if (prevState.getFirst().getTranslation().getDistance(pose.getTranslation())
+						< nextState.getFirst().getTranslation().getDistance(pose.getTranslation())) {
+					nextState = poseList.get(i + 1);
+					break;
+				}
+			}
+
+			double distanceToPrevPose = prevState.getFirst().getTranslation().getDistance(pose.getTranslation());
+			double distanceToNextPose = nextState.getFirst().getTranslation().getDistance(pose.getTranslation());
+			double percentToNextPose = (prevState
+									.getFirst()
+									.getTranslation()
+									.getDistance(nextState.getFirst().getTranslation())
+							- distanceToNextPose)
+					/ (distanceToPrevPose + distanceToNextPose);
+
+			Time timeDelta = nextState.getSecond().minus(prevState.getSecond());
+			Time timeAtPose = prevState.getSecond().plus(timeDelta.times(percentToNextPose));
+			return timeAtPose;
+		}
+
+		public Pose2d getPoseFromTime(Time time) {
+			if (time.gte(poseList.get(poseList.size() - 1).getSecond())) {
+				return poseList.get(poseList.size() - 1).getFirst();
+			} else if (time.lte(poseList.get(0).getSecond())) {
+				return poseList.get(0).getFirst();
+			}
+
+			Pair<Pose2d, Time> prevState = poseList.get(0);
+			Pair<Pose2d, Time> nextState = poseList.get(0);
+			;
+
+			for (int i = 1; i < poseList.size(); i++) {
+				nextState = poseList.get(i);
+				if (nextState.getSecond().gte(time)) {
+					prevState = poseList.get(i - 1);
+					break;
+				}
+			}
+
+			Time timeDelta = nextState.getSecond().minus(prevState.getSecond());
+			double percentIntoDelta =
+					time.minus(prevState.getSecond()).in(BaseUnits.TimeUnit) / (timeDelta.in(BaseUnits.TimeUnit));
+			Transform2d prevToTimePose =
+					nextState.getFirst().minus(prevState.getFirst()).times(percentIntoDelta);
+			return prevState.getFirst().plus(prevToTimePose);
+		}
+
+		public void clearStatesBeforeTime(Time time) {
+			while (poseList.size() > 1 && poseList.get(0).getSecond().lt(time)) {
+				poseList.remove(0);
+			}
+		}
+
+		public Pose2dTimeInterpolable(Trajectory trajwithTan, Rotation2d startHeading, Rotation2d endHeading) {
+			double totalTimeSeconds = trajwithTan.getTotalTimeSeconds();
+			for (State state : trajwithTan.getStates()) {
+				Rotation2d poseRotation = startHeading.interpolate(endHeading, state.timeSeconds / totalTimeSeconds);
+				poseList.add(new Pair<>(
+						new Pose2d(state.poseMeters.getTranslation(), poseRotation),
+						Units.Seconds.of(state.timeSeconds)));
+			}
+			SmartDashboard.putNumber("Auto Align Traj/Number Of Trajectory States", poseList.size());
+		}
+	}
 }
