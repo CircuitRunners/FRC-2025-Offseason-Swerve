@@ -7,15 +7,17 @@ import com.ctre.phoenix6.swerve.SwerveModule;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.units.Units;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
-import frc.lib.util.FieldConstants;
+import frc.lib.util.FieldLayout;
 import frc.lib.util.MathHelpers;
 import frc.lib.util.Util;
 import frc.robot.Robot;
 import frc.robot.RobotContainer;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.DriveConstants;
+import frc.robot.subsystems.superstructure.Superstructure;
 
 public class DriveMaintainingHeading extends Command{
     private final RobotContainer mRobotContainer;
@@ -25,12 +27,13 @@ public class DriveMaintainingHeading extends Command{
     private final DoubleSupplier mTurnSupplier;
     private Optional<Rotation2d> mHeadingSetpoint = Optional.empty();
     private double mJoystickLastTouched = -1;
-    private DriveHeadingState mDriveMode = DriveHeadingState.BARGE_HEADING;
+    private DriveHeadingState mDriveMode = DriveHeadingState.REEF_HEADING;
 
     private enum DriveHeadingState {
         NO_HEADING,           // when the driver is manually rotating
         MAINTAIN_HEADING,     // when holding the last heading
-        BARGE_HEADING,   // when aligned to barge
+        BARGE_HEADING,  
+        REEF_HEADING,
         PROCESSOR_HEADING // when aligned to processor
     }
     
@@ -87,8 +90,8 @@ public class DriveMaintainingHeading extends Command{
         double throttle = mThrottleSupplier.getAsDouble() * DriveConstants.kDriveMaxSpeed;
         double strafe = mStrafeSupplier.getAsDouble() * DriveConstants.kDriveMaxSpeed;
         double turnFieldFrame = mTurnSupplier.getAsDouble();
-        double throttleFieldFrame = mDrivetrain.isRedAlliance() ? -throttle : throttle;
-        double strafeFieldFrame = mDrivetrain.isRedAlliance() ? -strafe : strafe;
+        double throttleFieldFrame = mDrivetrain.isRedAlliance() ? throttle : -throttle;
+        double strafeFieldFrame = mDrivetrain.isRedAlliance() ? strafe : -strafe;
 
         if (Math.abs(turnFieldFrame) > DriveConstants.kSteerJoystickDeadband) {
             mJoystickLastTouched = Timer.getFPGATimestamp();
@@ -114,16 +117,31 @@ public class DriveMaintainingHeading extends Command{
                         Optional.of(mDrivetrain.getPose().getRotation());
             }
 
+            if (mDriveMode == DriveHeadingState.REEF_HEADING) {
+                double targetAngle = FieldLayout.Branch.getClosestFace(
+                    mDrivetrain.getPose(), 
+                    mDrivetrain.isRedAlliance())
+                    .rotation.getDegrees();
+                System.out.println(targetAngle);
 
-            if (mDriveMode == DriveHeadingState.BARGE_HEADING) {
+                mDrivetrain.getDrivetrain().setControl(
+                    driveWithHeading
+                            .withVelocityX(throttleFieldFrame)
+                            .withVelocityY(strafeFieldFrame)
+                            .withTargetDirection(
+                                    mDrivetrain.isRedAlliance()
+                                            ? Util.flipRedBlue(new Rotation2d(targetAngle))
+                                            : new Rotation2d(targetAngle)));
+                mHeadingSetpoint = Optional.of(mDrivetrain.getPose().getRotation());
+            } else if (mDriveMode == DriveHeadingState.BARGE_HEADING) {
                 double targetAngle =
                         mDrivetrain.getPose().getX()
-                                        > FieldConstants.fieldLength / 2.0
-                                ? 0
-                                : Math.PI;
+                                        > FieldLayout.kFieldLength.in(Units.Meters) / 2.0
+                                ? Math.PI
+                                : 0;
 
                 if (Math.abs(
-                    mDrivetrain.getPose().getX() - FieldConstants.fieldLength / 2.0) > 1.0
+                    mDrivetrain.getPose().getX() - FieldLayout.kFieldLength.in(Units.Meters) / 2.0) > 1.0
                 ) {
                     mHeadingSetpoint = Optional.of(new Rotation2d(targetAngle));
                 }

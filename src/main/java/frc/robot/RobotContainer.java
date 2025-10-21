@@ -43,20 +43,20 @@
         private void configureBindings() {
             // Note that X is defined as forward according to WPILib convention,
             // and Y is defined as to the left according to WPILib convention.
-            drive.getDrivetrain().setDefaultCommand(
-                // Drivetrain will execute this command periodically
-                drive.getDrivetrain().applyRequest(() ->
-                driveRequest.withVelocityX(-joystick.getLeftY() * MaxSpeed) // Drive forward with negative Y (forward)
-                        .withVelocityY(-joystick.getLeftX() * MaxSpeed) // Drive left with negative X (left)
-                        .withRotationalRate(-joystick.getRightX() * MaxAngularRate) // Drive counterclockwise with negative X (left)
-                )
-            );
+            // drive.getDrivetrain().setDefaultCommand(
+            //     // Drivetrain will execute this command periodically
+            //     drive.getDrivetrain().applyRequest(() ->
+            //     driveRequest.withVelocityX(-joystick.getLeftY() * MaxSpeed) // Drive forward with negative Y (forward)
+            //             .withVelocityY(-joystick.getLeftX() * MaxSpeed) // Drive left with negative X (left)
+            //             .withRotationalRate(-joystick.getRightX() * MaxAngularRate) // Drive counterclockwise with negative X (left)
+            //     )
+            // );
 
             joystick.a().onTrue(driveToPoseTest);
             
-            // drive.setDefaultCommand(
-            //     driveCommand
-            // );  
+            drive.setDefaultCommand(
+                driveCommand
+            );  
 
             // Idle while the robot is disabled. This ensures the configured
             // neutral mode is applied to the drive motors while disabled.

@@ -44,6 +44,10 @@ public class Util {
         return inRange(v, -maxMagnitude, maxMagnitude);
     }
 
+	public static Rotation2d flipRedBlue(Rotation2d original) {
+        return new Rotation2d(original.getRadians() + Math.PI);
+    }
+
     /**
      * Checks if the given input is within the range (min, max), both exclusive.
      */

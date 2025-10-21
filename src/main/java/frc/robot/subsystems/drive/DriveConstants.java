@@ -2,7 +2,7 @@ package frc.robot.subsystems.drive;
 
 import static edu.wpi.first.units.Units.MetersPerSecond;
 
-import com.pathplanner.lib.config.RobotConfig;
+//import com.pathplanner.lib.config.RobotConfig;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -43,16 +43,16 @@ public class DriveConstants {
     public static final SynchronousPIDF mAutoAlignHeadingController = getAutoAlignHeadingController();
 	public static final SynchronousPIDF mAutoAlignTranslationController = getAutoAlignTranslationController();
     
-    public static final RobotConfig robotConfig;
-    static {
-        RobotConfig tempConfig = null;
-        try{
-            tempConfig = RobotConfig.fromGUISettings();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        robotConfig = tempConfig;
-    }
+    // public static final RobotConfig robotConfig;
+    // static {
+    //     RobotConfig tempConfig = null;
+    //     try{
+    //         tempConfig = RobotConfig.fromGUISettings();
+    //     } catch (Exception e) {
+    //         e.printStackTrace();
+    //     }
+    //     robotConfig = tempConfig;
+    // }
 
  
 }
