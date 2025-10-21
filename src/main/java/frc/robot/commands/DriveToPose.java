@@ -36,7 +36,6 @@ public class DriveToPose extends Command{
     private double ffMinRadius = 0.0, ffMaxRadius = 0.1;
     private Pose2d targetLocation;
     
-
     public DriveToPose (
         Drive drive, 
         Pose2d targetLocation, 
@@ -59,23 +58,19 @@ public class DriveToPose extends Command{
 
     @Override
     public void initialize() {
-        //reads robot's current pose
         Pose2d currentPose = drive.getPose();
 
-        //resets PID controller
         driveController.reset(
         //distance from initial position to target location in meters
             currentPose.getTranslation().getDistance(targetLocation.getTranslation()),
              Math.min(
                         //clamps velocity if robot is moving away from target location (positive x velocity)
                         0.0,
-                        //creates Translation2d based on robot's field velocity
                         -new Translation2d(
                                         drive.getFieldRelativeChassisSpeeds()
                                                 .vxMetersPerSecond,
                                         drive.getFieldRelativeChassisSpeeds()
                                                 .vyMetersPerSecond)
-                                //rotates velocity so that x is forward and backward velocity relative to the target pose
                                 .rotateBy(
                                         targetLocation
                                                 .getTranslation()
@@ -86,7 +81,6 @@ public class DriveToPose extends Command{
                                                 .getAngle()
                                                 .unaryMinus())
                                 .getX()));
-        //resets theta controller
         thetaController.reset(
                 //current orientation in radians
                 currentPose.getRotation().getRadians(),
@@ -113,16 +107,16 @@ public class DriveToPose extends Command{
                 driveController.getSetpoint().velocity * ffScaler
                         + driveController.calculate(driveErrorAbs, 0.0);
 
-        //forces velocity to zero if robot within tolerance
+
         if (currentDistance < driveController.getPositionTolerance()) driveVelocityScalar = 0.0;
 
-        //total angular velocity command in rad/s
+
         double thetaVelocity =
                 thetaController.getSetpoint().velocity * ffScaler
                         + thetaController.calculate(
                                 currentPose.getRotation().getRadians(),
                                 targetLocation.getRotation().getRadians());
-        //calculates theta error, and forces angular velocity to zero if within tolerances
+
         thetaErrorAbs =
         Math.abs(
                 currentPose.getRotation().minus(targetLocation.getRotation()).getRadians());
@@ -139,6 +133,8 @@ public class DriveToPose extends Command{
                                         new Translation2d(driveVelocityScalar, 0.0)))
                         .getTranslation();
            
+        
+
         drive.getDrivetrain().setControl(
                 new SwerveRequest.ApplyRobotSpeeds()
                         .withSpeeds(
@@ -160,5 +156,8 @@ public class DriveToPose extends Command{
         return targetLocation.equals(null)
                 || (driveController.atGoal() && thetaController.atGoal());
     }
+
+
+
 }
 
