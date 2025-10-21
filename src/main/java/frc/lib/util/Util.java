@@ -7,14 +7,24 @@ import edu.wpi.first.math.Pair;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
+import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.math.trajectory.Trajectory.State;
 import edu.wpi.first.units.BaseUnits;
 import edu.wpi.first.units.Units;
+import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.Time;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class Util {
+	public static final double kEpsilon = 1e-12;
+
+	/**
+	 * Prevent this class from being instantiated.
+	 */
+	private Util() {}
+	
     /**
      * Limits the given input to the given magnitude.
      */
@@ -40,6 +50,42 @@ public class Util {
     public static boolean inRange(double v, double min, double max) {
         return v > min && v < max;
     }
+
+	public static boolean epsilonEquals(double a, double b, double epsilon) {
+		return (a - epsilon <= b) && (a + epsilon >= b);
+	}
+
+	public static boolean epsilonEquals(double a, double b) {
+		return epsilonEquals(a, b, kEpsilon);
+	}
+
+	public static boolean epsilonEquals(int a, int b, int epsilon) {
+		return (a - epsilon <= b) && (a + epsilon >= b);
+	}
+
+	public static boolean epsilonEquals(Translation2d a, Translation2d b) {
+		return epsilonEquals(a.getX(), b.getX()) || epsilonEquals(a.getY(), b.getY());
+	}
+
+	public static boolean epsilonEquals(Translation2d a, Translation2d b, double epsilon) {
+		return epsilonEquals(a.getX(), b.getX(), epsilon) && epsilonEquals(a.getY(), b.getY(), epsilon);
+	}
+
+	public static boolean epsilonEquals(Translation2d a, Translation2d b, Distance epsilon) {
+		return epsilonEquals(a.getX(), b.getX(), epsilon.in(Units.Meters))
+				&& epsilonEquals(a.getY(), b.getY(), epsilon.in(Units.Meters));
+	}
+
+	public static boolean epsilonEquals(ChassisSpeeds a, ChassisSpeeds b) {
+		return epsilonEquals(a.vxMetersPerSecond, b.vxMetersPerSecond)
+				&& epsilonEquals(a.vyMetersPerSecond, b.vyMetersPerSecond)
+				&& epsilonEquals(a.omegaRadiansPerSecond, b.omegaRadiansPerSecond);
+	}
+
+	public static boolean epsilonEquals(ChassisSpeeds a, ChassisSpeeds b, double linearVelocityEpsilon) {
+		return epsilonEquals(a.vxMetersPerSecond, b.vxMetersPerSecond, linearVelocityEpsilon)
+				&& epsilonEquals(a.vyMetersPerSecond, b.vyMetersPerSecond, linearVelocityEpsilon);
+	}
 
     public static class Pose2dTimeInterpolable {
 		private List<Pair<Pose2d, Time>> poseList = new ArrayList<>();
