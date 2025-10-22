@@ -22,6 +22,7 @@ public class DriveConstants {
     public static final double kHeadingControllerP = 5.0;
     public static final double kHeadingControllerI = 0;
     public static final double kHeadingControllerD = 0;
+    public static final double kMidlineBuffer = 1.0;
 
     public static final Translation2d kTranslation2dZero = new Translation2d(0.0, 0.0);
     public static final Rotation2d kRotation2dZero = new Rotation2d();

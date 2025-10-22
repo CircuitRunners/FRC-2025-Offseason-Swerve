@@ -27,14 +27,18 @@ public class DriveMaintainingHeading extends Command{
     private final DoubleSupplier mTurnSupplier;
     private Optional<Rotation2d> mHeadingSetpoint = Optional.empty();
     private double mJoystickLastTouched = -1;
-    private DriveHeadingState mDriveMode = DriveHeadingState.REEF_HEADING;
+    private DriveHeadingState mDriveMode = DriveHeadingState.BARGE_HEADING;
 
-    private enum DriveHeadingState {
-        NO_HEADING,           // when the driver is manually rotating
-        MAINTAIN_HEADING,     // when holding the last heading
-        BARGE_HEADING,  
+    public enum DriveHeadingState {
+        NO_HEADING,
+        MAINTAIN_HEADING,
+        BARGE_HEADING,
         REEF_HEADING,
-        PROCESSOR_HEADING // when aligned to processor
+        PROCESSOR_HEADING;
+
+        public String toString() {
+            return name();
+        }
     }
     
     private final SwerveRequest.FieldCentric driveNoHeading = 
@@ -92,6 +96,8 @@ public class DriveMaintainingHeading extends Command{
         double turnFieldFrame = mTurnSupplier.getAsDouble();
         double throttleFieldFrame = mDrivetrain.isRedAlliance() ? throttle : -throttle;
         double strafeFieldFrame = mDrivetrain.isRedAlliance() ? strafe : -strafe;
+        mRobotContainer.updateHeadingState();
+        mDriveMode = mRobotContainer.getHeadingState();
 
         if (Math.abs(turnFieldFrame) > DriveConstants.kSteerJoystickDeadband) {
             mJoystickLastTouched = Timer.getFPGATimestamp();
@@ -103,6 +109,7 @@ public class DriveMaintainingHeading extends Command{
                                         mDrivetrain.getRobotRelativeChassisSpeeds()
                                                 .omegaRadiansPerSecond)
                                 > Math.toRadians(10))) {
+            
             mDrivetrain.getDrivetrain().setControl(
                     (driveNoHeading
                             .withVelocityX(throttleFieldFrame)
@@ -122,7 +129,6 @@ public class DriveMaintainingHeading extends Command{
                     mDrivetrain.getPose(), 
                     mDrivetrain.isRedAlliance())
                     .rotation.getDegrees();
-                System.out.println(targetAngle);
 
                 mDrivetrain.getDrivetrain().setControl(
                     driveWithHeading
@@ -130,8 +136,8 @@ public class DriveMaintainingHeading extends Command{
                             .withVelocityY(strafeFieldFrame)
                             .withTargetDirection(
                                     mDrivetrain.isRedAlliance()
-                                            ? Util.flipRedBlue(new Rotation2d(targetAngle))
-                                            : new Rotation2d(targetAngle)));
+                                            ? Util.flipRedBlue(Rotation2d.fromDegrees(targetAngle))
+                                            : Rotation2d.fromDegrees(targetAngle)));
                 mHeadingSetpoint = Optional.of(mDrivetrain.getPose().getRotation());
             } else if (mDriveMode == DriveHeadingState.BARGE_HEADING) {
                 double targetAngle =
@@ -149,6 +155,21 @@ public class DriveMaintainingHeading extends Command{
                     .withVelocityX(throttleFieldFrame)
                     .withVelocityY(strafeFieldFrame)
                     .withTargetDirection(mHeadingSetpoint.get()));
+
+            } else if (mDriveMode == DriveHeadingState.PROCESSOR_HEADING) {
+                double targetAngle =
+                        mDrivetrain.isRedAlliance()
+                                ? Math.PI / 2
+                                : -Math.PI / 2;
+                if (mDrivetrain.onOpponentSide()) {
+                    targetAngle += Math.PI;
+                }
+                mHeadingSetpoint = Optional.of(new Rotation2d(targetAngle));
+                mDrivetrain.getDrivetrain().setControl(
+                        driveWithHeading
+                                .withVelocityX(throttleFieldFrame)
+                                .withVelocityY(strafeFieldFrame)
+                                .withTargetDirection(mHeadingSetpoint.get()));
             }
             else {
                 mDrivetrain.getDrivetrain().setControl(

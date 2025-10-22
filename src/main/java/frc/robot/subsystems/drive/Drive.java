@@ -12,12 +12,14 @@ import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.units.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.lib.util.FieldLayout;
 import frc.lib.util.MathHelpers;
 
 @Logged
@@ -102,6 +104,17 @@ public class Drive extends SubsystemBase {
         return DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red;
     }
 
+    public static boolean onOpponentSide(boolean isRedAlliance, Pose2d pose) {
+        return (isRedAlliance
+                        && pose.getTranslation().getX()
+                                < FieldLayout.kFieldLength.in(Units.Meters) / 2 - DriveConstants.kMidlineBuffer)
+                || (!isRedAlliance
+                        && pose.getTranslation().getX()
+                                > FieldLayout.kFieldLength.in(Units.Meters) / 2 + DriveConstants.kMidlineBuffer);
+    }
+    public boolean onOpponentSide() {
+        return onOpponentSide(this.isRedAlliance(), this.getPose());
+    }
 
     /**
      * Returns the current robot relative chassis speeds

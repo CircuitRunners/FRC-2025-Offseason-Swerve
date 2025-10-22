@@ -12,12 +12,15 @@
     import edu.wpi.first.epilogue.Logged;
     import edu.wpi.first.math.geometry.Pose2d;
     import edu.wpi.first.math.geometry.Rotation2d;
+    import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+    import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
     import edu.wpi.first.wpilibj2.command.Command;
     import edu.wpi.first.wpilibj2.command.Commands;
     import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
     import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
     import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
     import frc.robot.commands.DriveMaintainingHeading;
+    import frc.robot.commands.DriveMaintainingHeading.DriveHeadingState;
     import frc.robot.commands.DriveToPose;
     import frc.robot.subsystems.drive.Drive;
     import frc.robot.subsystems.drive.TunerConstants;
@@ -34,12 +37,23 @@
                 .withDriveRequestType(DriveRequestType.OpenLoopVoltage); // Use open-loop control for drive motors
 
         private final CommandXboxController joystick = new CommandXboxController(0);
-
+        
+        private final SendableChooser<DriveHeadingState> headingStateChooser = new SendableChooser<>();
+        private DriveHeadingState headingState = DriveHeadingState.NO_HEADING;
 
         public RobotContainer() {
             configureBindings();
+            configureHeadingStateChooser();
         }
-
+        
+        //configures heading state chooser
+        private void configureHeadingStateChooser() {
+            headingStateChooser.setDefaultOption("Reef Heading", DriveHeadingState.REEF_HEADING);
+            headingStateChooser.addOption("Barge Heading", DriveHeadingState.BARGE_HEADING);
+            headingStateChooser.addOption("Processor Heading", DriveHeadingState.PROCESSOR_HEADING);
+            headingStateChooser.addOption("Manual Heading", DriveHeadingState.NO_HEADING);
+            SmartDashboard.putData("Heading State Selector", headingStateChooser);
+        }
         private void configureBindings() {
             // Note that X is defined as forward according to WPILib convention,
             // and Y is defined as to the left according to WPILib convention.
@@ -56,7 +70,7 @@
             
             drive.setDefaultCommand(
                 driveCommand
-            );  
+            );
 
             // Idle while the robot is disabled. This ensures the configured
             // neutral mode is applied to the drive motors while disabled.
@@ -74,6 +88,14 @@
 
             // reset the field-centric heading on left bumper press
             joystick.start().onTrue(drive.getDrivetrain().runOnce(() -> drive.getDrivetrain().seedFieldCentric()));
+        }
+
+        public DriveHeadingState getHeadingState() {
+            return headingState;
+        }
+
+        public void updateHeadingState() {
+            headingState = headingStateChooser.getSelected();
         }
 
         public Command getAutonomousCommand() {
