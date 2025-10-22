@@ -2,14 +2,28 @@ package frc.robot.subsystems.drive;
 
 import static edu.wpi.first.units.Units.MetersPerSecond;
 
+import java.util.function.UnaryOperator;
+
+import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
+import com.ctre.phoenix6.swerve.SwerveRequest;
+
+import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.geometry.Pose2d;
+
 //import com.pathplanner.lib.config.RobotConfig;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.Distance;
+import edu.wpi.first.units.measure.LinearAcceleration;
 import edu.wpi.first.units.measure.LinearVelocity;
+import edu.wpi.first.units.measure.Time;
+import frc.lib.util.FieldLayout.Level;
 import frc.lib.util.SynchronousPIDF;
+import frc.lib.util.Util;
+import frc.robot.RobotConstants;
 
 public class DriveConstants {
     public static final double kDriveMaxAngularRate = 8.2; // 254
@@ -24,6 +38,20 @@ public class DriveConstants {
     public static final double kHeadingControllerD = 0;
     public static final double kMidlineBuffer = 1.0;
 
+    public static final SynchronousPIDF mAutoAlignTippyHeadingController = getAutoAlignTippyHeadingController();
+	public static final SynchronousPIDF mAutoAlignTippyTranslationController = getAutoAlignTippyTranslationController();
+    public static final LinearAcceleration kMaxAcceleration = Units.MetersPerSecondPerSecond.of(12.0);
+    public static final LinearAcceleration kMaxAccelTippy = kMaxAcceleration.div(3.0);
+    public static final Time elevatorRaiseTimeL4 = Units.Seconds.of(0.65);
+
+	public static final SynchronousPIDF mAutoAlignVeryTippyHeadingController = getAutoAlignVeryTippyHeadingController();
+	public static final SynchronousPIDF mAutoAlignVeryTippyTranslationController =
+			getAutoAlignVeryTippyTranslationController();
+
+
+
+    public static final LinearVelocity kMaxSpeedTippy = kMaxSpeed.div(2.0);
+    public static final LinearVelocity kMaxSpeedVeryTippy = kMaxSpeed.div(2.9);
     public static final Translation2d kTranslation2dZero = new Translation2d(0.0, 0.0);
     public static final Rotation2d kRotation2dZero = new Rotation2d();
 
@@ -55,5 +83,96 @@ public class DriveConstants {
     //     robotConfig = tempConfig;
     // }
 
- 
+    private static SynchronousPIDF getAutoAlignTippyHeadingController() {
+		SynchronousPIDF controller = new SynchronousPIDF(5.0, 0.0, 0.0);
+		controller.setInputRange(-0.5, 0.5);
+		controller.setMaxAbsoluteOutput(kMaxAngularRate.times(0.5).in(Units.RotationsPerSecond));
+		controller.setContinuous();
+		return controller;
+	}
+
+	private static SynchronousPIDF getAutoAlignTippyTranslationController() {
+		SynchronousPIDF controller = new SynchronousPIDF(2.6, 0.0, 0.0);
+		controller.setMaxAbsoluteOutput(kMaxSpeedTippy.in(Units.MetersPerSecond));
+		return controller;
+	}
+
+	private static SynchronousPIDF getAutoAlignVeryTippyHeadingController() {
+		SynchronousPIDF controller = new SynchronousPIDF(5.2, 0.0, 0.0);
+		controller.setInputRange(-0.5, 0.5);
+		controller.setMaxAbsoluteOutput(kMaxAngularRate.times(0.25).in(Units.RotationsPerSecond));
+		controller.setContinuous();
+		return controller;
+	}
+
+	private static SynchronousPIDF getAutoAlignVeryTippyTranslationController() {
+		SynchronousPIDF controller = new SynchronousPIDF(2.8, 0.0, 0.0);
+		controller.setMaxAbsoluteOutput(kMaxSpeedVeryTippy.in(Units.MetersPerSecond));
+		return controller;
+	}
+
+    public static final UnaryOperator<SwerveRequest.FieldCentric> getPIDToPoseRequestUpdater(
+			Drive drive, Pose2d targetPose, SynchronousPIDF translationController, SynchronousPIDF headingController) {
+		return (SwerveRequest.FieldCentric request) -> {
+			Pose2d currentPose = drive.getPose();
+			Translation2d deltaTranslation = currentPose.getTranslation().minus(targetPose.getTranslation());
+			LinearVelocity velocity =
+					Units.MetersPerSecond.of(translationController.calculate(deltaTranslation.getNorm()));
+			Rotation2d velocityDirection = deltaTranslation.getAngle();
+			if (RobotConstants.isRedAlliance) velocityDirection = velocityDirection.plus(Rotation2d.k180deg);
+
+			headingController.setSetpoint(Units.Radians.of(
+							MathUtil.angleModulus(targetPose.getRotation().getRadians()))
+					.in(Units.Rotations));
+
+			//LogUtil.recordPose2d("PID To Pose Updater/Target Pose", targetPose);
+
+			request.withVelocityX(velocity.times(velocityDirection.getCos()))
+					.withVelocityY(velocity.times(velocityDirection.getSin()))
+					.withRotationalRate(Units.RotationsPerSecond.of(
+							headingController.calculate(Units.Radians.of(MathUtil.angleModulus(
+											currentPose.getRotation().getRadians()))
+									.in(Units.Rotations))));
+
+			return request;
+		};
+	}
+
+    public static final SwerveRequest.FieldCentric PIDToPoseRequest = new SwerveRequest.FieldCentric()
+			.withDeadband(DriveConstants.kMaxSpeed
+					.times(kSteerJoystickDeadband)
+					.div(10.0))
+			.withRotationalDeadband(DriveConstants.kMaxAngularRate
+					.times(kSteerJoystickDeadband)
+					.div(10.0))
+			.withDriveRequestType(DriveRequestType.Velocity);
+    
+
+    public static SynchronousPIDF getTippyTranslationControllerForLevel(Level level) {
+        return switch (level) {
+            case L1,
+                    L2,
+                    L2_ALGAE,
+                    L3,
+                    L3_ALGAE,
+                    PROCESSOR_ALGAE -> mAutoAlignTranslationController; // not actually tippy so just return normal
+            case L4 -> mAutoAlignTippyTranslationController; // elevator is high so use tippy controller
+            case NET -> mAutoAlignVeryTippyTranslationController;
+            default -> null;
+        };
+    }
+
+    public static SynchronousPIDF getTippyHeadingControllerForLevel(Level level) {
+        return switch (level) {
+            case L1,
+                    L2,
+                    L2_ALGAE,
+                    L3,
+                    L3_ALGAE,
+                    PROCESSOR_ALGAE -> mAutoAlignHeadingController; // not actually tippy so just return normal
+            case L4 -> mAutoAlignTippyHeadingController; // elevator is high so use tippy controller
+            case NET -> mAutoAlignVeryTippyHeadingController;
+            default -> null;
+        };
+    }
 }

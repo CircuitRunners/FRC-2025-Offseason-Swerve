@@ -21,6 +21,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.lib.util.FieldLayout;
 import frc.lib.util.MathHelpers;
+import frc.robot.RobotConstants;
 
 @Logged
 /**
@@ -100,9 +101,6 @@ public class Drive extends SubsystemBase {
         return drivetrain.getState();
     }
 
-    public boolean isRedAlliance() {
-        return DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red;
-    }
 
     public static boolean onOpponentSide(boolean isRedAlliance, Pose2d pose) {
         return (isRedAlliance
@@ -113,7 +111,7 @@ public class Drive extends SubsystemBase {
                                 > FieldLayout.kFieldLength.in(Units.Meters) / 2 + DriveConstants.kMidlineBuffer);
     }
     public boolean onOpponentSide() {
-        return onOpponentSide(this.isRedAlliance(), this.getPose());
+        return onOpponentSide(RobotConstants.isRedAlliance, this.getPose());
     }
 
     /**

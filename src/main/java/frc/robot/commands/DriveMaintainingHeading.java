@@ -14,6 +14,7 @@ import frc.lib.util.FieldLayout;
 import frc.lib.util.MathHelpers;
 import frc.lib.util.Util;
 import frc.robot.Robot;
+import frc.robot.RobotConstants;
 import frc.robot.RobotContainer;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.DriveConstants;
@@ -94,8 +95,8 @@ public class DriveMaintainingHeading extends Command{
         double throttle = mThrottleSupplier.getAsDouble() * DriveConstants.kDriveMaxSpeed;
         double strafe = mStrafeSupplier.getAsDouble() * DriveConstants.kDriveMaxSpeed;
         double turnFieldFrame = mTurnSupplier.getAsDouble();
-        double throttleFieldFrame = mDrivetrain.isRedAlliance() ? throttle : -throttle;
-        double strafeFieldFrame = mDrivetrain.isRedAlliance() ? strafe : -strafe;
+        double throttleFieldFrame = RobotConstants.isRedAlliance ? throttle : -throttle;
+        double strafeFieldFrame = RobotConstants.isRedAlliance ? strafe : -strafe;
         mRobotContainer.updateHeadingState();
         mDriveMode = mRobotContainer.getHeadingState();
 
@@ -127,7 +128,7 @@ public class DriveMaintainingHeading extends Command{
             if (mDriveMode == DriveHeadingState.REEF_HEADING) {
                 double targetAngle = FieldLayout.Branch.getClosestFace(
                     mDrivetrain.getPose(), 
-                    mDrivetrain.isRedAlliance())
+                    RobotConstants.isRedAlliance)
                     .rotation.getDegrees();
 
                 mDrivetrain.getDrivetrain().setControl(
@@ -135,7 +136,7 @@ public class DriveMaintainingHeading extends Command{
                             .withVelocityX(throttleFieldFrame)
                             .withVelocityY(strafeFieldFrame)
                             .withTargetDirection(
-                                    mDrivetrain.isRedAlliance()
+                                RobotConstants.isRedAlliance
                                             ? Util.flipRedBlue(Rotation2d.fromDegrees(targetAngle))
                                             : Rotation2d.fromDegrees(targetAngle)));
                 mHeadingSetpoint = Optional.of(mDrivetrain.getPose().getRotation());
@@ -158,7 +159,7 @@ public class DriveMaintainingHeading extends Command{
 
             } else if (mDriveMode == DriveHeadingState.PROCESSOR_HEADING) {
                 double targetAngle =
-                        mDrivetrain.isRedAlliance()
+                    RobotConstants.isRedAlliance
                                 ? Math.PI / 2
                                 : -Math.PI / 2;
                 if (mDrivetrain.onOpponentSide()) {

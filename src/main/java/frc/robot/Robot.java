@@ -4,9 +4,15 @@
 
 package frc.robot;
 
+import java.util.Optional;
+
 import edu.wpi.first.epilogue.Epilogue;
 import edu.wpi.first.epilogue.Logged;
+import edu.wpi.first.hal.AllianceStationID;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.simulation.DriverStationSim;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 
@@ -30,7 +36,16 @@ public class Robot extends TimedRobot {
   public void disabledInit() {}
 
   @Override
-  public void disabledPeriodic() {}
+  public void disabledPeriodic() {
+    if (DriverStation.getAlliance().isPresent()) {
+			RobotConstants.isRedAlliance = DriverStation.getAlliance().equals(Optional.of(Alliance.Red));
+		} else {
+			RobotConstants.isRedAlliance =
+					DriverStationSim.getAllianceStationId().equals(AllianceStationID.Red1)
+							|| DriverStationSim.getAllianceStationId().equals(AllianceStationID.Red2)
+							|| DriverStationSim.getAllianceStationId().equals(AllianceStationID.Red3);
+		}
+  }
 
   @Override
   public void disabledExit() {}

@@ -19,11 +19,13 @@
     import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
     import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
     import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
-    import frc.robot.commands.DriveMaintainingHeading;
+import frc.lib.drive.PIDToPoseCommand;
+import frc.robot.commands.DriveMaintainingHeading;
     import frc.robot.commands.DriveMaintainingHeading.DriveHeadingState;
     import frc.robot.commands.DriveToPose;
     import frc.robot.subsystems.drive.Drive;
     import frc.robot.subsystems.drive.TunerConstants;
+import frc.robot.subsystems.superstructure.Superstructure;
 
     @Logged
     public class RobotContainer {
@@ -41,6 +43,7 @@
         private final SendableChooser<DriveHeadingState> headingStateChooser = new SendableChooser<>();
         private DriveHeadingState headingState = DriveHeadingState.NO_HEADING;
 
+        Superstructure superstructure = new Superstructure();
         public RobotContainer() {
             configureBindings();
             configureHeadingStateChooser();
@@ -67,7 +70,7 @@
             // );
 
             joystick.a().onTrue(driveToPoseTest);
-            
+            joystick.x().onTrue(pidToPoseTest);
             drive.setDefaultCommand(
                 driveCommand
             );
@@ -107,6 +110,10 @@
 
         private final DriveMaintainingHeading driveCommand = 
         (new DriveMaintainingHeading(drive, this, () -> joystick.getLeftY(), () -> joystick.getLeftX(), () -> joystick.getRightX()));
+
+        private final Command pidToPoseTest =
+            new PIDToPoseCommand(drive, superstructure, new Pose2d(2.0, 1.0, Rotation2d.fromDegrees(180)));
+        
 
         
 

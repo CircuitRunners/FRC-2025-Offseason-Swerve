@@ -1,5 +1,8 @@
 package frc.lib.drive;
 
+import com.ctre.phoenix6.swerve.SwerveRequest;
+
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
@@ -9,6 +12,7 @@ import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.Time;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.lib.util.DelayedBoolean;
 import frc.lib.util.FieldLayout.Level;
@@ -191,13 +195,67 @@ public class PIDToPoseCommand extends Command {
         }
 	}
 
-    //@Override
-	// public void execute() {
-	// 	LogUtil.recordPose2d("Auto Align PID/Final Pose", finalPose);
-	// 	drive.setSwerveRequest(
-	// 			DriveConstants.getPIDToPoseRequestUpdater(finalPose, translationController, headingController)
-	// 					.apply(DriveConstants.PIDToPoseRequest));
-	// }
+    @Override
+	public void execute() {
+		//LogUtil.recordPose2d("Auto Align PID/Final Pose", finalPose);
+		drive.getDrivetrain().setControl(
+				DriveConstants.getPIDToPoseRequestUpdater(drive, finalPose, translationController, headingController)
+						.apply(DriveConstants.PIDToPoseRequest));
+	}
+
+    @Override
+	public void end(boolean interrupted) {
+		superstructure.setPathFollowing(false);
+		drive.getDrivetrain().setControl(new SwerveRequest.ApplyRobotSpeeds());
+	}
+
+    @Override
+	public boolean isFinished() {
+		return atEndPose();
+	}
+
+    public boolean atEndPose() {
+		Pose2d currentPose = drive.getPose();
+
+		boolean complete = atTarget.update(
+				Timer.getFPGATimestamp(),
+				currentPose.getTranslation().getDistance(finalPose.getTranslation()) < epsilonDist.in(Units.Meters)
+						&& MathUtil.angleModulus(Math.abs(currentPose
+										.getRotation()
+										.minus(finalPose.getRotation())
+										.getRadians()))
+								< epsilonAngle.in(Units.Radians));
+
+		SmartDashboard.putBoolean("Auto Align PID/Completed", complete);
+		SmartDashboard.putBoolean(
+				"Auto Align PID/Translation Completed",
+				currentPose.getTranslation().getDistance(finalPose.getTranslation()) < epsilonDist.in(Units.Meters));
+		SmartDashboard.putBoolean(
+				"Auto Align PID/Rotation Completed",
+				MathUtil.angleModulus(Math.abs(currentPose
+								.getRotation()
+								.minus(finalPose.getRotation())
+								.getRadians()))
+						< epsilonAngle.in(Units.Radians));
+		SmartDashboard.putNumber(
+				"Auto Align PID/Distance Away Inches",
+				currentPose.getTranslation().getDistance(finalPose.getTranslation()) * 39.37);
+
+		return complete;
+	}
+
+    public Distance distanceFromEnd() {
+		return Units.Meters.of(drive
+				.getPose()
+				.getTranslation()
+				.minus(finalPose.getTranslation())
+				.getNorm());
+	}
+
+    public Superstructure getSuperstructure() {
+        return superstructure;
+    }
+
 
 
 }
