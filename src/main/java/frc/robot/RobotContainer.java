@@ -6,14 +6,20 @@
 
     import static edu.wpi.first.units.Units.*;
 
+    import java.util.List;
+
     import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
     import com.ctre.phoenix6.swerve.SwerveRequest;
 
     import edu.wpi.first.epilogue.Logged;
     import edu.wpi.first.math.geometry.Pose2d;
     import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.units.Units;
-import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+    import edu.wpi.first.math.geometry.Translation2d;
+    import edu.wpi.first.math.trajectory.Trajectory;
+    import edu.wpi.first.math.trajectory.TrajectoryConfig;
+    import edu.wpi.first.math.trajectory.TrajectoryGenerator;
+    import edu.wpi.first.units.Units;
+    import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
     import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
     import edu.wpi.first.wpilibj2.command.Command;
     import edu.wpi.first.wpilibj2.command.Commands;
@@ -22,11 +28,13 @@ import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
     import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
     import frc.lib.drive.DriveMaintainingHeading;
     import frc.lib.drive.DriveToPose;
-import frc.lib.drive.FollowSyncedPIDToPose;
-import frc.lib.drive.PIDToPoseCommand;
-import frc.lib.util.FieldLayout.Level;
-import frc.lib.drive.DriveMaintainingHeading.DriveHeadingState;
+    import frc.lib.drive.FollowSyncedPIDToPose;
+    import frc.lib.drive.FollowTrajectoryCommand;
+    import frc.lib.drive.PIDToPoseCommand;
+    import frc.lib.util.FieldLayout.Level;
+    import frc.lib.drive.DriveMaintainingHeading.DriveHeadingState;
     import frc.robot.subsystems.drive.Drive;
+    import frc.robot.subsystems.drive.DriveConstants;
     import frc.robot.subsystems.drive.TunerConstants;
     import frc.robot.subsystems.superstructure.Superstructure;
 
@@ -72,7 +80,8 @@ import frc.lib.drive.DriveMaintainingHeading.DriveHeadingState;
             //     )
             // );
 
-            joystick.x().whileTrue(pidToPoseTest);
+            joystick.x().whileTrue(followTrajectoryTest);
+            joystick.a().whileTrue(pidToPoseTest);
             drive.setDefaultCommand(
                 driveCommand
             );
@@ -95,6 +104,26 @@ import frc.lib.drive.DriveMaintainingHeading.DriveHeadingState;
             joystick.start().onTrue(drive.getDrivetrain().runOnce(() -> drive.getDrivetrain().seedFieldCentric()));
         }
 
+        private Trajectory configureTrajectory() {
+            TrajectoryConfig config = new TrajectoryConfig(DriveConstants.kDriveMaxSpeed, DriveConstants.kMaxAccelerationMetersPerSecondSquared);
+            Pose2d start = new Pose2d(2, 1, new Rotation2d(0));
+
+            List<Translation2d> waypoints = List.of(
+                new Translation2d(3.0, 5),
+                new Translation2d(5.0, 0.0)
+            );
+
+            Pose2d end = new Pose2d(3.0, 0.0, new Rotation2d(180));
+
+            Trajectory trajectory = TrajectoryGenerator.generateTrajectory(
+                start,
+                waypoints,
+                end,
+                config
+            );
+
+            return trajectory;
+        }
         public DriveHeadingState getHeadingState() {
             return headingState;
         }
@@ -111,8 +140,14 @@ import frc.lib.drive.DriveMaintainingHeading.DriveHeadingState;
         private final DriveMaintainingHeading driveCommand = 
         (new DriveMaintainingHeading(drive, this, () -> joystick.getLeftY(), () -> joystick.getLeftX(), () -> joystick.getRightX()));
 
+        private final Command syncedPIDToPoseTest =
+            new FollowSyncedPIDToPose(drive, superstructure, new Pose2d(5.0, 2.8, Rotation2d.fromDegrees(270)), Level.NET);
+        
         private final Command pidToPoseTest =
-            new FollowSyncedPIDToPose(drive, superstructure, new Pose2d(5.0, 2.8, Rotation2d.fromDegrees(270)), Level.L3);
+            new PIDToPoseCommand(drive, superstructure, new Pose2d(2.0, 0, Rotation2d.fromDegrees(0)));
+
+        private final Command followTrajectoryTest = 
+            new FollowTrajectoryCommand(drive, configureTrajectory());
         
 
         

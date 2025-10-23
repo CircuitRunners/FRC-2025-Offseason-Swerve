@@ -31,6 +31,8 @@ public class DriveConstants {
     public static final double kMaxAngularSpeedRadiansPerSecondSquared = 20.0;
     public static final double kDriveMaxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // 254
     public static final LinearVelocity kMaxSpeed = TunerConstants.kSpeedAt12Volts; // 1678
+	public static final LinearVelocity kMaxSpeedTippy = kMaxSpeed.div(2.0);
+    public static final LinearVelocity kMaxSpeedVeryTippy = kMaxSpeed.div(2.9);
     public static final double kMaxAccelerationMetersPerSecondSquared = 10.0;
     public static final double kSteerJoystickDeadband = 0.05;
     public static final double kHeadingControllerP = 5.0;
@@ -53,8 +55,7 @@ public class DriveConstants {
 
 
 
-    public static final LinearVelocity kMaxSpeedTippy = kMaxSpeed.div(2.0);
-    public static final LinearVelocity kMaxSpeedVeryTippy = kMaxSpeed.div(2.9);
+
     public static final Translation2d kTranslation2dZero = new Translation2d(0.0, 0.0);
     public static final Rotation2d kRotation2dZero = new Rotation2d();
 

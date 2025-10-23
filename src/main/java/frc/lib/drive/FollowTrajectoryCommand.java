@@ -58,6 +58,7 @@ public class FollowTrajectoryCommand extends Command{
         for (State state : trajectory.getStates()) {
             poseList.add(new Pair<>(state.poseMeters, Units.Seconds.of(state.timeSeconds)));
         }
+		this.drive = drive;
         this.trajectory = trajectory;
 		this.epsilonDist = epsilonDist;
 		this.epsilonAngle = epsilonAngle;
