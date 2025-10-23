@@ -106,6 +106,9 @@ public class DriveConstants {
 	public static final Distance distanceToStartSlowingProcessorAlgae = Units.Meters.of(999.0);
 	public static final Distance distanceToRaiseElevatorProcessorAlgae = Units.Meters.of(999.0);
 
+
+	public static final SynchronousPIDF mStayOnLineTranslationController = getAutoAlignTippyTranslationController();
+	public static final SynchronousPIDF mStayOnLineHeadingController = getAutoAlignTippyHeadingController();
     
     // public static final RobotConfig robotConfig;
     // static {
