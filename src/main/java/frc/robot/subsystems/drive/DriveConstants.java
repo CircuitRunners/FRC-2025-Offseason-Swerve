@@ -111,6 +111,10 @@ public class DriveConstants {
 		return controller;
 	}
 
+	public static final UnaryOperator<SwerveRequest.FieldCentric> getPIDToPoseRequestUpdater(Drive drive, Pose2d targetPose) {
+		return getPIDToPoseRequestUpdater(drive, targetPose, mAutoAlignTranslationController, mAutoAlignHeadingController);
+	}
+
     public static final UnaryOperator<SwerveRequest.FieldCentric> getPIDToPoseRequestUpdater(
 			Drive drive, Pose2d targetPose, SynchronousPIDF translationController, SynchronousPIDF headingController) {
 		return (SwerveRequest.FieldCentric request) -> {

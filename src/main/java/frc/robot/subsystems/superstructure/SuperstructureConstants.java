@@ -38,6 +38,13 @@ public class SuperstructureConstants {
 	public static final Time kL4ScoringDelay = Units.Milliseconds.of(40);
 	public static final Time kNetScoringDelay = Units.Milliseconds.of(40);
 
+	public static final Time kReefLookaheadTime = Units.Seconds.of(0.16);
+	public static final Time kProcessorAlgaeLookaheadTime = Units.Seconds.of(0.16);
+	public static final Time kL1LookaheadTime = Units.Seconds.of(0.16);
+	public static final Time kL2LookaheadTime = Units.Seconds.of(0.16);
+	public static final Time kL3LookaheadTime = Units.Seconds.of(0.16);
+	public static final Time kL4LookaheadTime = Units.Seconds.of(0.16);
+
 	public static final Distance kElevatorCenterOffset = Units.Inches.of(12.5); // NEEDS TO BE TUNED
 
 	// ALL OF THIS NEEDS TO BE TUNED
@@ -81,6 +88,16 @@ public class SuperstructureConstants {
 			case PROCESSOR_ALGAE -> kProcessorAlgaeScoringDelay;
 			case NET -> kNetScoringDelay;
 			default -> kReefScoringDelay;
+		};
+	}
+
+	public static Time getAutoAlignLookaheadTime(Level level) {
+		return switch (level) {
+			case L2 -> kL2LookaheadTime;
+			case L3 -> kL3LookaheadTime;
+			case L4 -> kL4LookaheadTime;
+			case PROCESSOR_ALGAE -> kProcessorAlgaeLookaheadTime;
+			default -> kReefLookaheadTime;
 		};
 	}
 
