@@ -12,20 +12,23 @@
     import edu.wpi.first.epilogue.Logged;
     import edu.wpi.first.math.geometry.Pose2d;
     import edu.wpi.first.math.geometry.Rotation2d;
-    import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.units.Units;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
     import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
     import edu.wpi.first.wpilibj2.command.Command;
     import edu.wpi.first.wpilibj2.command.Commands;
     import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
     import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
     import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
+    import frc.lib.drive.DriveMaintainingHeading;
+    import frc.lib.drive.DriveToPose;
+import frc.lib.drive.FollowSyncedPIDToPose;
 import frc.lib.drive.PIDToPoseCommand;
-import frc.robot.commands.DriveMaintainingHeading;
-    import frc.robot.commands.DriveMaintainingHeading.DriveHeadingState;
-    import frc.robot.commands.DriveToPose;
+import frc.lib.util.FieldLayout.Level;
+import frc.lib.drive.DriveMaintainingHeading.DriveHeadingState;
     import frc.robot.subsystems.drive.Drive;
     import frc.robot.subsystems.drive.TunerConstants;
-import frc.robot.subsystems.superstructure.Superstructure;
+    import frc.robot.subsystems.superstructure.Superstructure;
 
     @Logged
     public class RobotContainer {
@@ -69,8 +72,7 @@ import frc.robot.subsystems.superstructure.Superstructure;
             //     )
             // );
 
-            joystick.a().onTrue(driveToPoseTest);
-            joystick.x().onTrue(pidToPoseTest);
+            joystick.x().whileTrue(pidToPoseTest);
             drive.setDefaultCommand(
                 driveCommand
             );
@@ -105,14 +107,12 @@ import frc.robot.subsystems.superstructure.Superstructure;
             return Commands.print("No autonomous command configured");
         }
 
-        private final Command driveToPoseTest = 
-            new DriveToPose(drive, new Pose2d(2.0, 1.0, new Rotation2d(Math.PI/2)), 1.0);
 
         private final DriveMaintainingHeading driveCommand = 
         (new DriveMaintainingHeading(drive, this, () -> joystick.getLeftY(), () -> joystick.getLeftX(), () -> joystick.getRightX()));
 
         private final Command pidToPoseTest =
-            new PIDToPoseCommand(drive, superstructure, new Pose2d(2.0, 1.0, Rotation2d.fromDegrees(180)));
+            new FollowSyncedPIDToPose(drive, superstructure, new Pose2d(5.0, 2.8, Rotation2d.fromDegrees(270)), Level.L3);
         
 
         
