@@ -198,4 +198,18 @@ public class FieldLayout {
 			return branchesMap.get(nearestPose);
 		}
 	}
+
+	public static final Distance getNetScoreLine(boolean isRedAlliance) {
+		Distance midline = kFieldLength.div(2.0);
+		Distance distanceFromMidline =
+				isRedAlliance ? distanceFromMidlineNetScore : distanceFromMidlineNetScore.unaryMinus();
+		return midline.plus(distanceFromMidline);
+	}
+
+	public static final Rotation2d getNetScoreAngle(boolean isRedAlliance) {
+		return isRedAlliance ? netScoreAngle.plus(Rotation2d.k180deg) : netScoreAngle;
+	}
+
+	public static final Distance distanceFromMidlineNetScore = Units.Inches.of(34.0);
+	public static final Rotation2d netScoreAngle = Rotation2d.fromDegrees(20.0);
 }

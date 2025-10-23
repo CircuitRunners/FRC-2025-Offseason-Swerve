@@ -71,6 +71,9 @@ public class DriveConstants {
 
     public static final SynchronousPIDF mAutoAlignHeadingController = getAutoAlignHeadingController();
 	public static final SynchronousPIDF mAutoAlignTranslationController = getAutoAlignTranslationController();
+
+	public static final SynchronousPIDF mStayOnLineTranslationController = getAutoAlignTippyTranslationController();
+	public static final SynchronousPIDF mStayOnLineHeadingController = getAutoAlignTippyHeadingController();
     
     // public static final RobotConfig robotConfig;
     // static {
