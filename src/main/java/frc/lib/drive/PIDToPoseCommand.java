@@ -14,6 +14,7 @@ import edu.wpi.first.units.measure.Time;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import frc.lib.logging.LogUtil;
 import frc.lib.util.DelayedBoolean;
 import frc.lib.util.FieldLayout.Level;
 import frc.lib.util.SynchronousPIDF;
@@ -197,7 +198,7 @@ public class PIDToPoseCommand extends Command {
 
     @Override
 	public void execute() {
-		//LogUtil.recordPose2d("Auto Align PID/Final Pose", finalPose);
+		LogUtil.recordPose2d("Auto Align PID/Final Pose", finalPose);
 		drive.getDrivetrain().setControl(
 				DriveConstants.getPIDToPoseRequestUpdater(drive, finalPose, translationController, headingController)
 						.apply(DriveConstants.PIDToPoseRequest));

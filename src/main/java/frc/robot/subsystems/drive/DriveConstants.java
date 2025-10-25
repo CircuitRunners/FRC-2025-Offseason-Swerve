@@ -20,6 +20,7 @@ import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.LinearAcceleration;
 import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.units.measure.Time;
+import frc.lib.logging.LogUtil;
 import frc.lib.util.FieldLayout.Level;
 import frc.lib.util.SynchronousPIDF;
 import frc.lib.util.Util;
@@ -141,7 +142,7 @@ public class DriveConstants {
 							MathUtil.angleModulus(targetPose.getRotation().getRadians()))
 					.in(Units.Rotations));
 
-			//LogUtil.recordPose2d("PID To Pose Updater/Target Pose", targetPose);
+			LogUtil.recordPose2d("PID To Pose Updater/Target Pose", targetPose);
 
 			request.withVelocityX(velocity.times(velocityDirection.getCos()))
 					.withVelocityY(velocity.times(velocityDirection.getSin()))

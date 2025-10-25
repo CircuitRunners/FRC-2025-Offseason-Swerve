@@ -20,6 +20,7 @@ import edu.wpi.first.units.measure.Time;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import frc.lib.logging.LogUtil;
 import frc.lib.util.DelayedBoolean;
 import frc.lib.util.FieldLayout.Level;
 import frc.lib.util.SynchronousPIDF;
@@ -72,6 +73,8 @@ public class FollowTrajectoryCommand extends Command{
         this.translationController = translationController;
         this.headingController = headingController;
         atTarget = new DelayedBoolean(Timer.getFPGATimestamp(), delayTime.in(Units.Seconds));
+
+		LogUtil.recordTrajectory("Auto Align Traj/Trajectory", trajectory);
     }
 
     public FollowTrajectoryCommand(
@@ -264,6 +267,7 @@ public class FollowTrajectoryCommand extends Command{
 				.get(trajectory.getStates().size() - 1)
 				.poseMeters
 				.plus(new Transform2d(new Translation2d(), Rotation2d.k180deg));
+		LogUtil.recordPose2d("Auto Align Traj/Target Pose", finalPose);
 	}
 
     @Override
@@ -271,6 +275,7 @@ public class FollowTrajectoryCommand extends Command{
 		Time currentTime = interpolable.getTimeFromPose(drive.getPose());
 		interpolable.clearStatesBeforeTime(currentTime);
 		Pose2d lookaheadPose = interpolable.getPoseFromTime(currentTime.plus(lookaheadTime));
+		LogUtil.recordPose2d("Auto Align Traj/Pose To Pursue", lookaheadPose);
 		drive.getDrivetrain().setControl(
 				DriveConstants.getPIDToPoseRequestUpdater(drive, lookaheadPose).apply(DriveConstants.PIDToPoseRequest));
 	}
